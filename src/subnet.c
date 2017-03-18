@@ -523,24 +523,25 @@ subnet_t *lookup_subnet_ipv6(const ipv6_t *address) {
 void subnet_update(node_t *owner, subnet_t *subnet, bool up) {
 	avl_node_t *node;
 	int i;
-	char *envp[10] = {NULL};
+	char *envp[11] = {NULL};
 	char netstr[MAXNETSTR];
 	char *name, *address, *port;
 	char empty[] = "";
 
 	// Prepare environment variables to be passed to the script
 
-	xasprintf(&envp[0], "NETNAME=%s", netname ? : "");
-	xasprintf(&envp[1], "DEVICE=%s", device ? : "");
-	xasprintf(&envp[2], "INTERFACE=%s", iface ? : "");
-	xasprintf(&envp[3], "NODE=%s", owner->name);
-	xasprintf(&envp[4], "NAME=%s", myself->name);
+	xasprintf(&envp[0], "PID=%d", getpid());
+	xasprintf(&envp[1], "NETNAME=%s", netname ? : "");
+	xasprintf(&envp[2], "DEVICE=%s", device ? : "");
+	xasprintf(&envp[3], "INTERFACE=%s", iface ? : "");
+	xasprintf(&envp[4], "NODE=%s", owner->name);
+	xasprintf(&envp[5], "NAME=%s", myself->name);
 
 	if(owner != myself) {
 		sockaddr2str(&owner->address, &address, &port);
-		// 5 and 6 are reserved for SUBNET and WEIGHT
-		xasprintf(&envp[7], "REMOTEADDRESS=%s", address);
-		xasprintf(&envp[8], "REMOTEPORT=%s", port);
+		// 6 and 7 are reserved for SUBNET and WEIGHT
+		xasprintf(&envp[8], "REMOTEADDRESS=%s", address);
+		xasprintf(&envp[9], "REMOTEPORT=%s", port);
 		free(port);
 		free(address);
 	}
@@ -560,12 +561,12 @@ void subnet_update(node_t *owner, subnet_t *subnet, bool up) {
 				weight = empty;
 
 			// Prepare the SUBNET and WEIGHT variables
-			if(envp[5])
-				free(envp[5]);
 			if(envp[6])
 				free(envp[6]);
-			xasprintf(&envp[5], "SUBNET=%s", netstr);
-			xasprintf(&envp[6], "WEIGHT=%s", weight);
+			if(envp[7])
+				free(envp[7]);
+			xasprintf(&envp[6], "SUBNET=%s", netstr);
+			xasprintf(&envp[7], "WEIGHT=%s", weight);
 
 			execute_script(name, envp);
 		}
@@ -579,14 +580,14 @@ void subnet_update(node_t *owner, subnet_t *subnet, bool up) {
 				weight = empty;
 
 			// Prepare the SUBNET and WEIGHT variables
-			xasprintf(&envp[5], "SUBNET=%s", netstr);
-			xasprintf(&envp[6], "WEIGHT=%s", weight);
+			xasprintf(&envp[6], "SUBNET=%s", netstr);
+			xasprintf(&envp[7], "WEIGHT=%s", weight);
 
 			execute_script(name, envp);
 		}
 	}
 
-	for(i = 0; envp[i] && i < 9; i++)
+	for(i = 0; envp[i] && i < 10; i++)
 		free(envp[i]);
 }
 

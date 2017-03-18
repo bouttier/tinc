@@ -361,7 +361,7 @@ static bool setup_myself(void) {
 	char *address = NULL;
 	char *proxy = NULL;
 	char *space;
-	char *envp[5] = {NULL};
+	char *envp[6] = {NULL};
 	struct addrinfo *ai, *aip, hint = {0};
 	bool choice;
 	int i, err;
@@ -761,10 +761,11 @@ static bool setup_myself(void) {
 		return false;
 
 	/* Run tinc-up script to further initialize the tap interface */
-	xasprintf(&envp[0], "NETNAME=%s", netname ? : "");
-	xasprintf(&envp[1], "DEVICE=%s", device ? : "");
-	xasprintf(&envp[2], "INTERFACE=%s", iface ? : "");
-	xasprintf(&envp[3], "NAME=%s", myself->name);
+	xasprintf(&envp[0], "PID=%d", getpid());
+	xasprintf(&envp[1], "NETNAME=%s", netname ? : "");
+	xasprintf(&envp[2], "DEVICE=%s", device ? : "");
+	xasprintf(&envp[3], "INTERFACE=%s", iface ? : "");
+	xasprintf(&envp[4], "NAME=%s", myself->name);
 
 #ifdef HAVE_MINGW
 	Sleep(1000);
@@ -774,7 +775,7 @@ static bool setup_myself(void) {
 #endif
 	execute_script("tinc-up", envp);
 
-	for(i = 0; i < 4; i++)
+	for(i = 0; i < 5; i++)
 		free(envp[i]);
 
 	/* Run subnet-up scripts for our own subnets */
@@ -958,7 +959,7 @@ bool setup_network(void) {
 void close_network_connections(void) {
 	avl_node_t *node, *next;
 	connection_t *c;
-	char *envp[5] = {NULL};
+	char *envp[6] = {NULL};
 	int i;
 
 	for(node = connection_tree->head; node; node = next) {
@@ -988,10 +989,11 @@ void close_network_connections(void) {
 		close(listen_socket[i].udp);
 	}
 
-	xasprintf(&envp[0], "NETNAME=%s", netname ? : "");
-	xasprintf(&envp[1], "DEVICE=%s", device ? : "");
-	xasprintf(&envp[2], "INTERFACE=%s", iface ? : "");
-	xasprintf(&envp[3], "NAME=%s", myself->name);
+	xasprintf(&envp[0], "PID=%d", getpid());
+	xasprintf(&envp[1], "NETNAME=%s", netname ? : "");
+	xasprintf(&envp[2], "DEVICE=%s", device ? : "");
+	xasprintf(&envp[3], "INTERFACE=%s", iface ? : "");
+	xasprintf(&envp[4], "NAME=%s", myself->name);
 
 	exit_requests();
 	exit_edges();
@@ -1004,7 +1006,7 @@ void close_network_connections(void) {
 
 	if(myport) free(myport);
 
-	for(i = 0; i < 4; i++)
+	for(i = 0; i < 5; i++)
 		free(envp[i]);
 
 	devops.close();

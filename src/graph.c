@@ -156,7 +156,7 @@ static void sssp_bfs(void) {
 	bool indirect;
 	char *name;
 	char *address, *port;
-	char *envp[8] = {NULL};
+	char *envp[9] = {NULL};
 	int i;
 
 	todo_list = list_alloc(NULL);
@@ -266,14 +266,15 @@ static void sssp_bfs(void) {
 				n->mtuevent = NULL;
 			}
 
-			xasprintf(&envp[0], "NETNAME=%s", netname ? : "");
-			xasprintf(&envp[1], "DEVICE=%s", device ? : "");
-			xasprintf(&envp[2], "INTERFACE=%s", iface ? : "");
-			xasprintf(&envp[3], "NODE=%s", n->name);
+			xasprintf(&envp[0], "PID=%d", getpid());
+			xasprintf(&envp[1], "NETNAME=%s", netname ? : "");
+			xasprintf(&envp[2], "DEVICE=%s", device ? : "");
+			xasprintf(&envp[3], "INTERFACE=%s", iface ? : "");
+			xasprintf(&envp[4], "NODE=%s", n->name);
 			sockaddr2str(&n->address, &address, &port);
-			xasprintf(&envp[4], "REMOTEADDRESS=%s", address);
-			xasprintf(&envp[5], "REMOTEPORT=%s", port);
-			xasprintf(&envp[6], "NAME=%s", myself->name);
+			xasprintf(&envp[5], "REMOTEADDRESS=%s", address);
+			xasprintf(&envp[6], "REMOTEPORT=%s", port);
+			xasprintf(&envp[7], "NAME=%s", myself->name);
 
 			execute_script(n->status.reachable ? "host-up" : "host-down", envp);
 
@@ -286,7 +287,7 @@ static void sssp_bfs(void) {
 			free(address);
 			free(port);
 
-			for(i = 0; i < 7; i++)
+			for(i = 0; i < 8; i++)
 				free(envp[i]);
 
 			subnet_update(n, NULL, n->status.reachable);
